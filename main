@@ -1,0 +1,41 @@
+//@version=5
+strategy("MA Crossover Strategy", overlay=true)
+
+// Strateji parametreleri
+fastLength = input(9, title="Hızlı MA Periyodu")
+slowLength = input(21, title="Yavaş MA Periyodu")
+stopLoss = input(2.0, title="Stop Loss %")
+takeProfit = input(4.0, title="Take Profit %")
+
+// Hareketli ortalamaları hesapla
+fastMA = ta.ema(close, fastLength)
+slowMA = ta.ema(close, slowLength)
+
+// Plot MA çizgileri
+plot(fastMA, color=color.blue, title="Hızlı MA", linewidth=2)
+plot(slowMA, color=color.red, title="Yavaş MA", linewidth=2)
+
+// Kesişim koşulları
+crossOverUp = ta.crossover(fastMA, slowMA)
+crossOverDown = ta.crossunder(fastMA, slowMA)
+
+// Stop Loss ve Take Profit hesaplamaları
+longStopPrice = strategy.position_avg_price * (1 - stopLoss / 100)
+longProfitPrice = strategy.position_avg_price * (1 + takeProfit / 100)
+shortStopPrice = strategy.position_avg_price * (1 + stopLoss / 100)
+shortProfitPrice = strategy.position_avg_price * (1 - takeProfit / 100)
+
+// Alış ve satış sinyalleri
+if crossOverUp
+    strategy.entry("Long", strategy.long)
+
+if crossOverDown
+    strategy.entry("Short", strategy.short)
+
+// Stop Loss ve Take Profit uygulaması
+strategy.exit("TP/SL", "Long", stop=longStopPrice, limit=longProfitPrice)
+strategy.exit("TP/SL", "Short", stop=shortStopPrice, limit=shortProfitPrice)
+
+// Alış/Satış okları
+plotshape(crossOverUp, "Alış Sinyali", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(crossOverDown, "Satış Sinyali", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
